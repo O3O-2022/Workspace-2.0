@@ -1,0 +1,7 @@
+{
+  "_comment": "Map each tier to a model id from your app's model picker.",
+  "light": "claude-haiku-5-5",
+  "standard": "claude-sonnet-5-5",
+  "deep": "claude-opus-5-5",
+  "frontier": "claude-fable-5-1"
+}

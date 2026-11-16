@@ -96,6 +96,34 @@ The hub's context is re-read on every turn, so the hub is usually the biggest sp
 4. Show the user a table: session · new model · one-line reason. Then apply with `set_session_model` (see the quirk in step 2).
 5. Rename sessions with unclear names (`session-15` → a real task name).
 
+## 7. Talk short, stay exact
+
+Output tokens cost the most per token, and every long reply is re-read on later turns. Hub and children both follow:
+
+- Cut filler, restating, narrating next steps, repeating tool output, options you won't take.
+- Never cut numbers, paths, names, commands, error text, risks, or "not / only if / except".
+- Plain whole sentences — a summary, not a riddle. If two readings are possible, reword.
+- End-of-task report, same order every time:
+  `Result / Changed / Not done / Next`
+- Be longer only when short would cause a wrong action.
+
+For every session by default, install `output-styles/workspace-terse.md` as the output style. For one session, `/ws-terse`.
+
+## Slash commands
+
+| Command | Section |
+| --- | --- |
+| `/ws` | list of commands |
+| `/ws-spawn <task>` | 1–4 in one go |
+| `/ws-route <task; task>` | 1, table only |
+| `/ws-brief <task>` | 4 |
+| `/ws-audit` | 6 |
+| `/ws-name` | 3, for linked sessions |
+| `/ws-idle` | 1, idle rule |
+| `/ws-lighten` | 5 |
+| `/ws-handoff` | handoff note |
+| `/ws-terse [on\|off]` | 7 |
+
 ## What this skill does not do
 
 - It does not change permission modes, push code, or publish anything.

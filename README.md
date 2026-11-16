@@ -2,8 +2,8 @@
 
 [![Discord](https://img.shields.io/badge/Discord-%EC%B0%B8%EC%97%AC%ED%95%98%EA%B8%B0-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/PTPV93Zd59) [![Ko-fi](https://img.shields.io/badge/Ko--fi-%ED%9B%84%EC%9B%90%ED%95%98%EA%B8%B0-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/zip_yogurt)
 
-**Claude Code에서 서브 세션 · 서브 에이전트를 싸게 굴리는 스킬.**
-서브 세션을 만들 때마다 그 일에 맞는 모델로 바꾸고, 이름을 깔끔하게 짓고, 짧은 브리프를 쓰고, 총괄 세션이 쓸데없이 토큰을 먹지 않게 한다.
+**Claude Code에서 서브 세션 · 서브 에이전트를 싸게 굴리고, Claude가 짧고 정확하게 말하게 하는 도구 모음.**
+서브 세션을 만들 때마다 그 일에 맞는 모델로 바꾸고, 이름을 깔끔하게 짓고, 짧은 브리프를 쓰고, 총괄 세션이 쓸데없이 토큰을 먹지 않게 한다. 슬래시 명령 한 줄로 모두 부를 수 있다.
 
 ![before and after](docs/before_after.gif)
 
@@ -27,6 +27,8 @@
 | **턴을 끝내고 기다리지 않기** | "알림 오면 할게요" 하고 턴을 끝낸 세션은 아무도 안 깨운다. 끝날 때까지 이어서 하게 브리프에 적는다 |
 | **총괄을 가볍게** | 자식 보고를 매번 옮기지 않음 · 끝난 세션 다시 깨우지 않음 · 20만 토큰 넘으면 `/compact` · 5시간 한도를 보고 동시 세션 수 조절 |
 | **전체 점검** | "세션마다 맞는 모델로" 한 마디면 연결된 세션 전부를 훑어 표로 보여 주고 바꾼다 |
+| **짧고 정확하게 말하기** (새) | 인사말 · 되풀이 · 군말을 빼고 결론부터. 숫자 · 경로 · "안 됨/~일 때만"은 절대 안 줄인다. 끝 보고는 늘 `결과 / 바꾼 것 / 안 한 것 / 다음` 순서 |
+| **슬래시 명령** (새) | `/ws-spawn`, `/ws-audit`, `/ws-terse` 등 10개. 단순한 명령은 싼 모델로 돈다 |
 
 ## 얼마나 줄어드나
 
@@ -37,16 +39,18 @@
 ## 설치
 
 ```bash
-git clone https://github.com/O3O-2022/workspace-2.git
-cp -r workspace-2/skill/workspace-2 ~/.claude/skills/
+git clone https://github.com/O3O-2022/Workspace-2.0.git
+sh Workspace-2.0/install.sh
 ```
 
 윈도 PowerShell:
 
 ```powershell
-Copy-Item -Recurse workspace-2\skill\workspace-2 $env:USERPROFILE\.claude\skills\
+git clone https://github.com/O3O-2022/Workspace-2.0.git
+powershell -ExecutionPolicy Bypass -File Workspace-2.0\install.ps1
 ```
 
+스킬 · 슬래시 명령 · 출력 스타일을 `~/.claude`에 복사한다. 다시 설치해도 고쳐 둔 `models.json`은 그대로 남는다.
 그다음 [`models.json`](skill/workspace-2/scripts/models.json)에 앱 모델 메뉴에 나오는 모델 이름을 단계마다 적는다.
 
 ## 쓰는 법
@@ -74,6 +78,44 @@ python skill/workspace-2/scripts/route.py --table \
 | [Store] 트레일러 어디까지함                   | light    | claude-haiku-5-5  | 어디까지        |
 ```
 
+## 슬래시 명령
+
+| 명령 | 하는 일 |
+| --- | --- |
+| `/ws` | 명령 목록 |
+| `/ws-spawn <일>` | 서브 세션 시작: 맞는 모델 · 깔끔한 이름 · 짧은 브리프를 한 번에 |
+| `/ws-route <일; 일>` | 단계 · 모델 · 이름만 표로 (세션은 안 만듦) |
+| `/ws-brief <일>` | 브리프만 쓰기 |
+| `/ws-audit` | 연결된 세션 전부를 맞는 모델로 |
+| `/ws-name` | 이름이 흐린 세션(`session-15` 등)을 `[분류] 동사 + 대상`으로 |
+| `/ws-idle` | 끝나고 기다리는 세션을 한 단계 아래 모델로 |
+| `/ws-lighten` | 총괄 점검: 컨텍스트 크기 · 5시간 한도 · 보관할 세션 |
+| `/ws-handoff` | 새 세션에 넘길 짧은 인계 메모 |
+| `/ws-terse [on\|off]` | 이 세션만 짧고 정확하게 말하기 |
+
+`/ws`, `/ws-route`, `/ws-terse`는 Haiku, `/ws-brief`, `/ws-handoff`는 Sonnet으로 돈다(명령 파일의 `model:` 줄에서 바꿀 수 있다).
+
+## 짧고 정확하게 말하기
+
+모든 세션에 늘 켜 두려면 출력 스타일 **Workspace Terse**를 고른다(`/output-style` 또는 앱 설정). 한 세션만이면 `/ws-terse`.
+
+| 뺀다 | 절대 안 뺀다 |
+| --- | --- |
+| 인사말 · 맺음말, 요청 되풀이, "이제 ~하겠습니다" 같은 예고, 도구 결과 되풀이, 안 쓸 선택지, 얼버무림 | 숫자 · 경로 · 이름 · 명령 · 오류 문구, 바뀐 것 · 안 바뀐 것 · 확인 안 된 것, 위험, "안 됨 / ~일 때만 / ~ 빼고" |
+
+요약은 하되 암호처럼 줄이지 않는다. 뜻이 둘로 읽히면 고쳐 쓴다. 지우는 명령 · 보안 · 순서가 중요한 절차처럼 짧으면 잘못될 일만 길게 쓴다.
+
+작업이 끝나면 늘 같은 순서로 보고한다:
+
+```text
+결과: 지금 무엇이 됐는지 한 줄
+바꾼 것: 파일 · 설정 이름
+안 한 것 / 확인 안 된 것: 없으면 "없음"
+다음: 사용자가 정할 것 하나, 없으면 생략
+```
+
+**얼마나 아끼나:** 줄어드는 건 *출력* 토큰이다. 출력은 토큰당 입력보다 5배 비싸지만, Claude Code 비용의 대부분은 매 턴 다시 읽는 입력(컨텍스트)이라 절감 폭은 "조금"이다. 대신 짧은 답이 쌓이면 이후 턴마다 다시 읽는 컨텍스트도 덜 커진다. 정확도가 오른다는 측정은 아직 없다.
+
 ## 모델 단계
 
 | 단계 | 이런 일 | 보통 |
@@ -95,7 +137,11 @@ python skill/workspace-2/scripts/route.py --table \
 
 **Workspace 2.0** is a Claude Code skill that makes sub-sessions and sub-agents cheaper. New sessions inherit the parent's model, so a hub on the top model spawns workers on the top model even for uploads and renames. This skill classifies each task into one of four tiers, switches the session's model right after it starts, names it `[Category] verb + object`, writes a short brief that asks for a single final report, and keeps the hub's own context small. Ask "put every session on the right model" to audit all linked sessions at once.
 
-Install: copy `skill/workspace-2` into `~/.claude/skills/`, then set your model ids in `scripts/models.json`. The router (`scripts/route.py`) has no dependencies and understands English and Korean.
+**New:** a *Workspace Terse* output style (short, exact replies: no filler, but numbers, paths and negations are never cut; every task ends with `Result / Changed / Not done / Next`) and ten slash commands: `/ws`, `/ws-spawn`, `/ws-route`, `/ws-brief`, `/ws-audit`, `/ws-name`, `/ws-idle`, `/ws-lighten`, `/ws-handoff`, `/ws-terse`. Simple commands run on Haiku or Sonnet.
+
+Install: `git clone https://github.com/O3O-2022/Workspace-2.0.git`, then `sh Workspace-2.0/install.sh` (or `install.ps1` on Windows). It copies the skill, commands and output style into `~/.claude` and keeps your existing `models.json`. Set your model ids in `scripts/models.json`; pick the output style with `/output-style`. The router (`scripts/route.py`) has no dependencies and understands English and Korean.
+
+Terse mode saves *output* tokens only. Most Claude Code cost is re-read input context, so expect a small saving, not a large one.
 
 The cost chart uses example weights, not real prices.
 

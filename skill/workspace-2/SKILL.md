@@ -122,6 +122,7 @@ For every session by default, install `output-styles/workspace-terse.md` as the 
 | `/ws-idle` | 1, idle rule |
 | `/ws-lighten` | 5 |
 | `/ws-handoff` | handoff note |
+| `/ws-split <file>` | split a long file by topic |
 | `/ws-terse [on\|off]` | 7 |
 
 ## What this skill does not do

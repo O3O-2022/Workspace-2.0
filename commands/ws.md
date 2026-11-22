@@ -14,4 +14,5 @@ Print exactly this table and nothing else:
 | `/ws-idle` | Move finished / waiting sessions one tier down |
 | `/ws-lighten` | Check the hub: context size, 5-hour usage, sessions to archive |
 | `/ws-handoff` | Write a short handoff note for a new session |
+| `/ws-split <file>` | Split a long code file by topic (plan first, then build + test) |
 | `/ws-terse [on\|off]` | Short, exact replies for this session |

@@ -42,6 +42,14 @@ Next: <the one decision or step the user must take, or nothing>
 ```
 Skip a line only when it is truly empty. Keep the order the same every time so the user always knows where to look.
 
+## Keep code files small
+Big files cost tokens on every read and hide where a change belongs.
+- **New feature → its own file from the start.** Same class: a topic file (C++: one header, functions in `Class_Topic.cpp`; C#: `partial class`; others: a module the class imports). Stands on its own: a new subsystem or component.
+- **3,000-line rule.** When a file you are about to edit is over 3,000 lines, move the topic you are touching into a new file as part of that edit. Behaviour stays the same. Build and run the same tests right after the move. Do not split code you are not touching.
+- **Connect only through declarations and calls** (headers, imports, public functions). No globals shared between files.
+- Say what moved where in the report (`Changed:`). For a split bigger than the topic you touch, show the plan and wait for a yes. `/ws-split <file>` does it on demand.
+- Don't paste long code in chat. Write it to the file; show only the changed part.
+
 ## Be longer only when short would cause a wrong action
 Destructive commands, security warnings, ordered multi-step instructions, or the user asks for detail ("자세히", "explain"). Then be complete, and go back to short next turn.
 

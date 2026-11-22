@@ -28,7 +28,8 @@
 | **총괄을 가볍게** | 자식 보고를 매번 옮기지 않음 · 끝난 세션 다시 깨우지 않음 · 20만 토큰 넘으면 `/compact` · 5시간 한도를 보고 동시 세션 수 조절 |
 | **전체 점검** | "세션마다 맞는 모델로" 한 마디면 연결된 세션 전부를 훑어 표로 보여 주고 바꾼다 |
 | **짧고 정확하게 말하기** (새) | 인사말 · 되풀이 · 군말을 빼고 결론부터. 숫자 · 경로 · "안 됨/~일 때만"은 절대 안 줄인다. 끝 보고는 늘 `결과 / 바꾼 것 / 안 한 것 / 다음` 순서 |
-| **슬래시 명령** (새) | `/ws-spawn`, `/ws-audit`, `/ws-terse` 등 10개. 단순한 명령은 싼 모델로 돈다 |
+| **슬래시 명령** (새) | `/ws-spawn`, `/ws-audit`, `/ws-terse` 등 11개. 단순한 명령은 싼 모델로 돈다 |
+| **긴 코드 나누기** (새) | 새 기능은 처음부터 따로 두고, 3,000줄 넘는 파일은 고치는 김에 그 주제를 새 파일로 옮긴다. 큰 파일을 통째로 읽는 토큰이 줄어든다 |
 
 ## 얼마나 줄어드나
 
@@ -91,6 +92,7 @@ python skill/workspace-2/scripts/route.py --table \
 | `/ws-idle` | 끝나고 기다리는 세션을 한 단계 아래 모델로 |
 | `/ws-lighten` | 총괄 점검: 컨텍스트 크기 · 5시간 한도 · 보관할 세션 |
 | `/ws-handoff` | 새 세션에 넘길 짧은 인계 메모 |
+| `/ws-split <파일>` | 긴 코드 파일을 주제별로 나누기 (계획 먼저, 나눈 뒤 빌드 · 시험) |
 | `/ws-terse [on\|off]` | 이 세션만 짧고 정확하게 말하기 |
 
 `/ws`, `/ws-route`, `/ws-terse`는 Haiku, `/ws-brief`, `/ws-handoff`는 Sonnet으로 돈다(명령 파일의 `model:` 줄에서 바꿀 수 있다).
@@ -113,6 +115,15 @@ python skill/workspace-2/scripts/route.py --table \
 안 한 것 / 확인 안 된 것: 없으면 "없음"
 다음: 사용자가 정할 것 하나, 없으면 생략
 ```
+
+## 긴 코드 나누기
+
+Claude는 파일을 고칠 때 보통 통째로 읽는다. 큰 파일은 한 줄을 고쳐도 매번 그만큼 토큰을 쓰고, 고칠 곳도 찾기 어렵다. 출력 스타일 **Workspace Terse**에 들어 있어 켜 두면 늘 지킨다.
+
+- **새 기능은 처음부터 따로.** 같은 클래스면 주제별 파일로 나눈다(C++: 헤더는 하나, 함수는 `Class_Topic.cpp` / C#: `partial class` / 그 밖: 모듈). 따로 서는 일이면 서브시스템이나 컴포넌트로 만든다.
+- **3,000줄 기준.** 고치려는 파일이 3,000줄을 넘으면 고치는 김에 그 주제 부분을 새 파일로 옮긴다. 동작은 그대로 두고, 옮긴 뒤 바로 빌드하고 같은 시험을 돌린다. 안 고치는 부분은 건드리지 않는다.
+- **연결은 선언과 호출로만.** 헤더 · import · 공개 함수로만 잇고, 파일끼리 전역 변수를 나눠 쓰지 않는다.
+- 원할 때 직접: `/ws-split <파일>` → 나눌 계획을 먼저 보여 주고, 좋다고 하면 나눈 뒤 빌드 · 시험까지 한다.
 
 **얼마나 아끼나:** 줄어드는 건 *출력* 토큰이다. 출력은 토큰당 입력보다 5배 비싸지만, Claude Code 비용의 대부분은 매 턴 다시 읽는 입력(컨텍스트)이라 절감 폭은 "조금"이다. 대신 짧은 답이 쌓이면 이후 턴마다 다시 읽는 컨텍스트도 덜 커진다. 정확도가 오른다는 측정은 아직 없다.
 
@@ -137,7 +148,7 @@ python skill/workspace-2/scripts/route.py --table \
 
 **Workspace 2.0** is a Claude Code skill that makes sub-sessions and sub-agents cheaper. New sessions inherit the parent's model, so a hub on the top model spawns workers on the top model even for uploads and renames. This skill classifies each task into one of four tiers, switches the session's model right after it starts, names it `[Category] verb + object`, writes a short brief that asks for a single final report, and keeps the hub's own context small. Ask "put every session on the right model" to audit all linked sessions at once.
 
-**New:** a *Workspace Terse* output style (short, exact replies: no filler, but numbers, paths and negations are never cut; every task ends with `Result / Changed / Not done / Next`) and ten slash commands: `/ws`, `/ws-spawn`, `/ws-route`, `/ws-brief`, `/ws-audit`, `/ws-name`, `/ws-idle`, `/ws-lighten`, `/ws-handoff`, `/ws-terse`. Simple commands run on Haiku or Sonnet.
+**New:** a *Workspace Terse* output style (short, exact replies: no filler, but numbers, paths and negations are never cut; every task ends with `Result / Changed / Not done / Next`) and eleven slash commands: `/ws`, `/ws-spawn`, `/ws-route`, `/ws-brief`, `/ws-audit`, `/ws-name`, `/ws-idle`, `/ws-lighten`, `/ws-handoff`, `/ws-split`, `/ws-terse`. Code-size rules: new features go in their own file from the start; a file over 3,000 lines gets the touched topic moved to a new file (same behaviour, build + test right after); files connect only through declarations and calls, never shared globals. Simple commands run on Haiku or Sonnet.
 
 Install: `git clone https://github.com/O3O-2022/Workspace-2.0.git`, then `sh Workspace-2.0/install.sh` (or `install.ps1` on Windows). It copies the skill, commands and output style into `~/.claude` and keeps your existing `models.json`. Set your model ids in `scripts/models.json`; pick the output style with `/output-style`. The router (`scripts/route.py`) has no dependencies and understands English and Korean.
 
